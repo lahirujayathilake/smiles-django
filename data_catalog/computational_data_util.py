@@ -1,25 +1,19 @@
-import data_catalog_pb2 as pb2
-import json
-
-from data_catalog.models import ComputationalDataProduct
-
-
-def create_computational_product_entity(request):
-    # Get data from request body
-    # data = json.loads(request.body)
-    # comp_data_product = ComputationalDataProduct(data_product_id=data.get('data_product_id'), name=data.get('name'),
-    #                                              mw=87.0)
-    #
-    comp_data_product = ComputationalDataProduct(data_product_id='data_product_id0349348', name='namedf34343', mw=87.0)
-    comp_data_product.metadata = json.dumps({"mw": comp_data_product.mw, "absorb": 834})
-
-    return comp_data_product
+import data_catalog_pb2
+from .proto import computational_dp_pb2
+from google.protobuf.json_format import MessageToJson
 
 
-def map_comp_data_to_data_product(smiles_data_product: ComputationalDataProduct) -> pb2.DataProduct:
-    data_catalog_product = pb2.DataProduct()
-    data_catalog_product.data_product_id = smiles_data_product.data_product_id
-    data_catalog_product.parent_data_product_id = smiles_data_product.parent_data_product_id
-    data_catalog_product.metadata = smiles_data_product.metadata
+def map_computational_dp_to_catalog_dp(comp_dp: computational_dp_pb2.ComputationalDP()) -> data_catalog_pb2.DataProduct:
+    data_catalog_product = data_catalog_pb2.DataProduct()
+    data_catalog_product.data_product_id = comp_dp.data_product_id
+    data_catalog_product.parent_data_product_id = comp_dp.parent_data_product_id
+    data_catalog_product.name = comp_dp.name
+
+    # Convert the model to a JSON string, excluding fields 'data_product_id', 'parent_data_product_id', 'name
+    comp_dp.data_product_id = ""
+    comp_dp.name = ""
+    comp_dp.parent_data_product_id = ""
+    data_catalog_product.metadata = MessageToJson(comp_dp, including_default_value_fields=False,
+                                                  preserving_proto_field_name=True)
 
     return data_catalog_product
